@@ -1,3 +1,5 @@
+// initial source https://github.com/mdn/webgl-examples/tree/gh-pages/tutorial/sample5
+
 var cubeRotation = 0.0;
 
 main();
@@ -20,24 +22,18 @@ function main() {
 
   const vsSource = `
     attribute vec4 aVertexPosition;
-    attribute vec4 aVertexColor;
 
     uniform mat4 uModelViewMatrix;
     uniform mat4 uProjectionMatrix;
 
-    varying lowp vec4 vColor;
-
     void main(void) {
       gl_Position = uProjectionMatrix * uModelViewMatrix * aVertexPosition;
-      vColor = aVertexColor;
     }
   `;
 
   // Fragment shader program
 
   const fsSource = `
-    varying lowp vec4 vColor;
-
     void main(void) {
       gl_FragColor = vec4(0.9, 0.9, 0.06, 1);
     }
@@ -55,7 +51,6 @@ function main() {
     program: shaderProgram,
     attribLocations: {
       vertexPosition: gl.getAttribLocation(shaderProgram, 'aVertexPosition'),
-      vertexColor: gl.getAttribLocation(shaderProgram, 'aVertexColor'),
     },
     uniformLocations: {
       projectionMatrix: gl.getUniformLocation(shaderProgram, 'uProjectionMatrix'),
@@ -145,33 +140,6 @@ function initBuffers(gl) {
 
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
 
-  // Now set up the colors for the faces. We'll use solid colors
-  // for each face.
-
-  const faceColors = [
-    [1.0,  1.0,  1.0,  1.0],    // Front face: white
-    [1.0,  0.0,  0.0,  1.0],    // Back face: red
-    [0.0,  1.0,  0.0,  1.0],    // Top face: green
-    [0.0,  0.0,  1.0,  1.0],    // Bottom face: blue
-    [1.0,  1.0,  0.0,  1.0],    // Right face: yellow
-    [1.0,  0.0,  1.0,  1.0],    // Left face: purple
-  ];
-
-  // Convert the array of colors into a table for all the vertices.
-
-  var colors = [];
-
-  for (var j = 0; j < faceColors.length; ++j) {
-    const c = faceColors[j];
-
-    // Repeat each color four times for the four vertices of the face
-    colors = colors.concat(c, c, c, c);
-  }
-
-  const colorBuffer = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
-
   // Build the element array buffer; this specifies the indices
   // into the vertex arrays for each face's vertices.
 
@@ -198,7 +166,6 @@ function initBuffers(gl) {
 
   return {
     position: positionBuffer,
-    color: colorBuffer,
     indices: indexBuffer,
   };
 }
@@ -274,26 +241,6 @@ function drawScene(gl, programInfo, buffers, deltaTime) {
         offset);
     gl.enableVertexAttribArray(
         programInfo.attribLocations.vertexPosition);
-  }
-
-  // Tell WebGL how to pull out the colors from the color buffer
-  // into the vertexColor attribute.
-  {
-    const numComponents = 4;
-    const type = gl.FLOAT;
-    const normalize = false;
-    const stride = 0;
-    const offset = 0;
-    gl.bindBuffer(gl.ARRAY_BUFFER, buffers.color);
-    gl.vertexAttribPointer(
-        programInfo.attribLocations.vertexColor,
-        numComponents,
-        type,
-        normalize,
-        stride,
-        offset);
-    gl.enableVertexAttribArray(
-        programInfo.attribLocations.vertexColor);
   }
 
   // Tell WebGL which indices to use to index the vertices
