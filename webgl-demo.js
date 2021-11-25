@@ -1,6 +1,6 @@
 // initial source https://github.com/mdn/webgl-examples/tree/gh-pages/tutorial/sample5
 
-var cubeRotation = 0.0;
+var cubeRotation = 0;
 
 main();
 
@@ -21,21 +21,33 @@ function main() {
   // Vertex shader program
 
   const vsSource = `
+    precision mediump float;
     attribute vec4 aVertexPosition;
 
     uniform mat4 uModelViewMatrix;
     uniform mat4 uProjectionMatrix;
 
+    uniform mat4 uWorldInverseTransposeMatrix;
+
+    attribute vec3 a_normal;
+    varying vec3 v_normal;
+
     void main(void) {
       gl_Position = uProjectionMatrix * uModelViewMatrix * aVertexPosition;
+      v_normal = mat3(uWorldInverseTransposeMatrix) * a_normal;
     }
   `;
 
   // Fragment shader program
 
   const fsSource = `
+    precision mediump float;
+    varying vec3 v_normal;
     void main(void) {
       gl_FragColor = vec4(0.9, 0.9, 0.06, 1);
+      vec3 normal = normalize(v_normal);
+      float light = dot(normal, normalize(vec3(0.5, 0.7, 1)));
+      gl_FragColor.rgb *= light;
     }
   `;
 
@@ -51,10 +63,12 @@ function main() {
     program: shaderProgram,
     attribLocations: {
       vertexPosition: gl.getAttribLocation(shaderProgram, 'aVertexPosition'),
+      normal: gl.getAttribLocation(shaderProgram, 'a_normal'),
     },
     uniformLocations: {
       projectionMatrix: gl.getUniformLocation(shaderProgram, 'uProjectionMatrix'),
       modelViewMatrix: gl.getUniformLocation(shaderProgram, 'uModelViewMatrix'),
+      worldInverseTransposeMatrix: gl.getUniformLocation(shaderProgram, 'uWorldInverseTransposeMatrix'),
     }
   };
 
@@ -77,12 +91,6 @@ function main() {
   requestAnimationFrame(render);
 }
 
-//
-// initBuffers
-//
-// Initialize the buffers we'll need. For this demo, we just
-// have one object -- a simple three-dimensional cube.
-//
 function initBuffers(gl) {
 
   const normalsBuffer = gl.createBuffer();
@@ -503,132 +511,132 @@ function initBuffers(gl) {
   // This array defines each face as two triangles, using the
   // indices into the vertex array to specify each triangle's
   // position.
-const indices = [
-  0, 1, 2,
-  3, 4, 5,
-  6, 7, 8,
-  9, 10, 11,
-  12, 13, 14,
-  15, 16, 17,
-  18, 19, 20,
-  21, 22, 23,
-  24, 25, 26,
-  27, 28, 29,
-  30, 31, 32,
-  33, 34, 35,
-  36, 37, 38,
-  39, 40, 41,
-  42, 43, 44,
-  45, 46, 47,
-  48, 49, 50,
-  51, 52, 53,
-  54, 55, 56,
-  57, 58, 59,
-  60, 61, 62,
-  63, 64, 65,
-  66, 67, 68,
-  69, 70, 71,
-  72, 73, 74,
-  75, 76, 77,
-  78, 79, 80,
-  81, 82, 83,
-  84, 85, 86,
-  87, 88, 89,
-  90, 91, 92,
-  93, 94, 95,
-  96, 97, 98,
-  99, 100, 101,
-  0, 102, 1,
-  3, 103, 4,
-  6, 104, 7,
-  9, 105, 10,
-  12, 106, 13,
-  15, 107, 16,
-  18, 108, 19,
-  21, 109, 22,
-  24, 110, 25,
-  27, 111, 28,
-  30, 112, 31,
-  33, 113, 34,
-  36, 114, 37,
-  39, 115, 40,
-  42, 116, 43,
-  45, 117, 46,
-  48, 118, 49,
-  51, 119, 52,
-  54, 120, 55,
-  57, 121, 58,
-  60, 122, 61,
-  63, 123, 64,
-  66, 124, 67,
-  69, 125, 70,
-  72, 126, 73,
-  75, 127, 76,
-  78, 128, 79,
-  81, 129, 82,
-  84, 130, 85,
-  87, 131, 88,
-  132, 133, 134,
-  134, 135, 132,
-  135, 136, 132,
-  136, 137, 138,
-  138, 139, 90,
-  90, 140, 141,
-  141, 142, 90,
-  142, 143, 90,
-  143, 144, 145,
-  145, 146, 91,
-  91, 147, 148,
-  148, 149, 150,
-  150, 151, 152,
-  152, 153, 92,
-  92, 154, 155,
-  155, 156, 92,
-  156, 157, 92,
-  157, 158, 159,
-  159, 160, 132,
-  136, 138, 132,
-  138, 90, 132,
-  143, 145, 91,
-  91, 148, 92,
-  148, 150, 92,
-  150, 152, 92,
-  157, 159, 92,
-  159, 132, 92,
-  90, 143, 91,
-  132, 90, 92,
-  93, 161, 94,
-  96, 162, 97,
-  163, 164, 165,
-  165, 166, 167,
-  167, 168, 169,
-  169, 170, 167,
-  170, 99, 167,
-  99, 171, 172,
-  172, 173, 99,
-  173, 174, 99,
-  174, 175, 100,
-  175, 176, 100,
-  176, 177, 100,
-  100, 178, 179,
-  179, 180, 181,
-  181, 182, 101,
-  182, 183, 101,
-  183, 184, 101,
-  101, 185, 186,
-  186, 187, 188,
-  188, 189, 190,
-  190, 191, 163,
-  163, 165, 167,
-  100, 179, 101,
-  179, 181, 101,
-  101, 186, 163,
-  186, 188, 163,
-  188, 190, 163,
-  163, 167, 99,
-  99, 174, 100,
-  163, 99, 101
-]
+  const indices = [
+    0, 1, 2,
+    3, 4, 5,
+    6, 7, 8,
+    9, 10, 11,
+    12, 13, 14,
+    15, 16, 17,
+    18, 19, 20,
+    21, 22, 23,
+    24, 25, 26,
+    27, 28, 29,
+    30, 31, 32,
+    33, 34, 35,
+    36, 37, 38,
+    39, 40, 41,
+    42, 43, 44,
+    45, 46, 47,
+    48, 49, 50,
+    51, 52, 53,
+    54, 55, 56,
+    57, 58, 59,
+    60, 61, 62,
+    63, 64, 65,
+    66, 67, 68,
+    69, 70, 71,
+    72, 73, 74,
+    75, 76, 77,
+    78, 79, 80,
+    81, 82, 83,
+    84, 85, 86,
+    87, 88, 89,
+    90, 91, 92,
+    93, 94, 95,
+    96, 97, 98,
+    99, 100, 101,
+    0, 102, 1,
+    3, 103, 4,
+    6, 104, 7,
+    9, 105, 10,
+    12, 106, 13,
+    15, 107, 16,
+    18, 108, 19,
+    21, 109, 22,
+    24, 110, 25,
+    27, 111, 28,
+    30, 112, 31,
+    33, 113, 34,
+    36, 114, 37,
+    39, 115, 40,
+    42, 116, 43,
+    45, 117, 46,
+    48, 118, 49,
+    51, 119, 52,
+    54, 120, 55,
+    57, 121, 58,
+    60, 122, 61,
+    63, 123, 64,
+    66, 124, 67,
+    69, 125, 70,
+    72, 126, 73,
+    75, 127, 76,
+    78, 128, 79,
+    81, 129, 82,
+    84, 130, 85,
+    87, 131, 88,
+    132, 133, 134,
+    134, 135, 132,
+    135, 136, 132,
+    136, 137, 138,
+    138, 139, 90,
+    90, 140, 141,
+    141, 142, 90,
+    142, 143, 90,
+    143, 144, 145,
+    145, 146, 91,
+    91, 147, 148,
+    148, 149, 150,
+    150, 151, 152,
+    152, 153, 92,
+    92, 154, 155,
+    155, 156, 92,
+    156, 157, 92,
+    157, 158, 159,
+    159, 160, 132,
+    136, 138, 132,
+    138, 90, 132,
+    143, 145, 91,
+    91, 148, 92,
+    148, 150, 92,
+    150, 152, 92,
+    157, 159, 92,
+    159, 132, 92,
+    90, 143, 91,
+    132, 90, 92,
+    93, 161, 94,
+    96, 162, 97,
+    163, 164, 165,
+    165, 166, 167,
+    167, 168, 169,
+    169, 170, 167,
+    170, 99, 167,
+    99, 171, 172,
+    172, 173, 99,
+    173, 174, 99,
+    174, 175, 100,
+    175, 176, 100,
+    176, 177, 100,
+    100, 178, 179,
+    179, 180, 181,
+    181, 182, 101,
+    182, 183, 101,
+    183, 184, 101,
+    101, 185, 186,
+    186, 187, 188,
+    188, 189, 190,
+    190, 191, 163,
+    163, 165, 167,
+    100, 179, 101,
+    179, 181, 101,
+    101, 186, 163,
+    186, 188, 163,
+    188, 190, 163,
+    163, 167, 99,
+    99, 174, 100,
+    163, 99, 101
+  ];
 
   // Now send the element array to GL
 
@@ -637,6 +645,7 @@ const indices = [
 
   return {
     position: positionBuffer,
+    normals: normalsBuffer,
     indices: indexBuffer,
   };
 }
@@ -667,6 +676,20 @@ function drawScene(gl, programInfo, buffers, deltaTime) {
   const zFar = 100.0;
   const projectionMatrix = mat4.create();
 
+  var camera = [100, 150, 200];
+  var target = [0, 35, 0];
+  var up = [0, 1, 0];
+  var cameraMatrix = m4.lookAt(camera, target, up);
+
+  var viewMatrix = m4.inverse(cameraMatrix);
+
+  var viewProjectionMatrix = m4.multiply(projectionMatrix, viewMatrix);
+
+  var worldMatrix = m4.yRotation(cubeRotation);
+  var worldViewProjectionMatrix = m4.multiply(viewProjectionMatrix, worldMatrix);
+  var worldInverseMatrix = m4.inverse(worldMatrix);
+  var worldInverseTransposeMatrix = m4.transpose(worldInverseMatrix);
+
   // note: glmatrix.js always has the first argument
   // as the destination to receive the result.
   mat4.perspective(projectionMatrix,
@@ -691,8 +714,26 @@ function drawScene(gl, programInfo, buffers, deltaTime) {
   //             [0, 0, 1]);       // axis to rotate around (Z)
   mat4.rotate(modelViewMatrix,  // destination matrix
               modelViewMatrix,  // matrix to rotate
-              cubeRotation * .7,// amount to rotate in radians
+              cubeRotation,// amount to rotate in radians
               [0, 1, 0]);       // axis to rotate around (X)
+
+  {
+    const numComponents = 3;
+    const type = gl.FLOAT;
+    const normalize = false;
+    const stride = 0;
+    const offset = 0;
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffers.normals);
+    gl.vertexAttribPointer(
+        programInfo.attribLocations.normal,
+        numComponents,
+        type,
+        normalize,
+        stride,
+        offset);
+    gl.enableVertexAttribArray(
+        programInfo.attribLocations.normal);
+  }
 
   // Tell WebGL how to pull out the positions from the position
   // buffer into the vertexPosition attribute
@@ -724,13 +765,17 @@ function drawScene(gl, programInfo, buffers, deltaTime) {
   // Set the shader uniforms
 
   gl.uniformMatrix4fv(
-      programInfo.uniformLocations.projectionMatrix,
-      false,
-      projectionMatrix);
+    programInfo.uniformLocations.projectionMatrix,
+    false,
+    projectionMatrix);
   gl.uniformMatrix4fv(
-      programInfo.uniformLocations.modelViewMatrix,
-      false,
-      modelViewMatrix);
+    programInfo.uniformLocations.modelViewMatrix,
+    false,
+    modelViewMatrix);
+  gl.uniformMatrix4fv(
+    programInfo.uniformLocations.worldInverseTransposeMatrix,
+    false,
+    worldInverseTransposeMatrix);
 
   {
     const vertexCount = 372;
