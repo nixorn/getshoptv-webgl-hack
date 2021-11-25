@@ -58,7 +58,11 @@ for index in indices:
     print('  ' + ', '.join(index) + ",")
 print("]")
 
+print("const normals = [")
+for normal in normals:
+    print('  ' + ', '.join(normal) + ",")
+print("]")
 
 print("positions length", len(vertices))
 print("indices length", len(indices))
-#print(normals)
+print("normals length", len(normals))
