@@ -39,7 +39,7 @@ function main() {
     varying lowp vec4 vColor;
 
     void main(void) {
-      gl_FragColor = vColor;
+      gl_FragColor = vec4(0.9, 0.9, 0.06, 1);
     }
   `;
 
